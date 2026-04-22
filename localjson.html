@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Manager</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    height: 100vh;
+
+    /* Gradient base */
+    background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+
+    /* Abstract graphics */
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(108,99,255,0.15), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255,107,107,0.15), transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(32,201,151,0.1), transparent 40%);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Glass card */
+.container {
+    width: 540px;
+    padding: 30px;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+h2{
+    text-align: start;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #6c63ff;
+    box-shadow: 0 0 8px rgba(108, 99, 255, 0.2);
+}
+
+/* Add button */
+.add-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #6c63ff, #8e7dff);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.add-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(108,99,255,0.3);
+}
+
+/* Search */
+.search {
+    margin-top: 15px;
+}
+
+/* List */
+ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+/* List item */
+li {
+    background: rgba(255,255,255,0.7);
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    transition: 0.25s;
+}
+
+li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* Buttons */
+.actions button {
+    margin-left: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* Edit */
+.edit-btn {
+    background: #20c997;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #17a589;
+}
+
+/* Delete */
+.delete-btn {
+    background: #ff6b6b;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #e55050;
+}
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#productList {
+    width: 540px;
+    margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+    <div class="container">
+        <h1>Product Manager</h1>
+
+        <input type="text" id="productName" placeholder="Enter product name">
+        <input type="number" id="productPrice" placeholder="Enter price">
+
+        <button class="add-btn" onclick="addProduct()">Add Product</button>
+
+        <input type="text" id="searchInput" class="search" placeholder="Search Product..."
+            onkeyup="searchProducts()">
+    </div>
+    <h2> Stored Products</h2>
+
+    <ul id="productList"></ul>
+</div>
+
+<script>
+let editId = null;
+
+window.onload = function () {
+    displayProducts();
+}
+
+function addProduct() {
+    let name = document.getElementById("productName").value;
+    let price = document.getElementById("productPrice").value;
+
+    if (!name || !price) {
+        alert("Please enter product name and price!");
+        return;
+    }
+
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+
+    if (editId) {
+        products = products.map(p => {
+            if (p.id == editId) {
+                return { ...p, name: name, price: Number(price) };
+            }
+            return p;
+        });
+        editId = null;
+    } else {
+        products.push({
+            id: Date.now(),
+            name: name,
+            price: Number(price)
+        });
+    }
+
+    localStorage.setItem("products", JSON.stringify(products));
+
+    document.getElementById("productName").value = "";
+    document.getElementById("productPrice").value = "";
+
+    displayProducts();
+}
+
+function displayProducts(item = null) {
+    let productList = document.getElementById("productList");
+    productList.innerHTML = "";
+
+    let products = item || JSON.parse(localStorage.getItem("products")) || [];
+
+    products.forEach((p) => {
+        let li = document.createElement("li");
+
+        li.innerHTML = `
+            <span>${p.name} - ₹${p.price}</span>
+            <div class="actions">
+                <button class="edit-btn" onclick="editProduct(${p.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
+            </div>
+        `;
+
+        productList.appendChild(li);
+    });
+}
+
+function searchProducts() {
+    let searchValue = document.getElementById("searchInput").value.toLowerCase();
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+
+    let filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(searchValue)
+    );
+
+    displayProducts(filteredProducts);
+}
+
+function editProduct(id) {
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    let product = products.find(p => p.id === id);
+
+    document.getElementById("productName").value = product.name;
+    document.getElementById("productPrice").value = product.price;
+
+    editId = id;
+}
+
+function deleteProduct(id) {
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    let updatedProducts = products.filter(p => p.id !== id);
+
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+    displayProducts();
+}
+</script>
+
+</body>
+</html>
